@@ -1,0 +1,54 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+author: "John R Ferguson"
+date: "December 29, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading and preprocessing the data
+```{r}
+library(ggplot2)
+
+setwd("~/coursera")
+
+projectdata <- read.csv('activity.csv')
+
+stepsByDay <- tapply(projectdata$steps, projectdata$date, sum, na.rm=TRUE)
+steps_per_interval <- aggregate(steps ~ interval, data = projectdata, mean, na.rm = TRUE)
+missing <- !complete.cases(projectdata)
+projectdata$dateType <-  ifelse(as.POSIXlt(projectdata$date)$wday %in% c(0,6), 'weekend', 'weekday')
+averagedActivityPatterns <- aggregate(steps ~ interval + dateType, data=projectdata, mean)
+```
+
+
+## What is mean total number of steps taken per day?
+```{r}
+mean(stepsByDay)
+```
+#### Histogram of Steps
+```{r}
+qplot(stepsByDay, xlab='Total steps per day', ylab='Frequency using binwith 1000', binwidth=1000)
+```
+
+## What is the average daily activity pattern?
+```{r}
+plot(steps ~ interval, data = steps_per_interval, type = "l")
+```
+
+
+## Imputing missing values
+```{r}
+sum(missing == TRUE)
+```
+## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+ggplot(averagedActivityPatterns, aes(interval, steps)) + 
+    geom_line() + 
+    facet_grid(dateType ~ .) +
+    xlab("5-minute interval") + 
+    ylab("average number of steps")
+```
